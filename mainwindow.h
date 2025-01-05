@@ -32,6 +32,7 @@ private:
     void getSettings();
     void error(QString error);
     void sipCommand(QString cmd, QString value);
+    bool isRegistering = false;
 
 private slots:
     void getScreen();

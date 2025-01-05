@@ -3,6 +3,14 @@
 
 void MainWindow::registerSip()
 {
+    // Check if already registering
+	if (isRegistering) {
+		if (metaVoIP) {
+			delete metaVoIP; // Clean up the existing MetaVoIP instance
+			metaVoIP = nullptr; // Reset pointer
+		}
+	}
+
     metaVoIP = new MetaVoIP(ui->sipProtoBox->currentText(), ui->sipPortText->text().toInt());
     sipUser = ui->sipUser->text().simplified();
     sipServer = ui->sipServer->text().simplified();
@@ -13,10 +21,16 @@ void MainWindow::registerSip()
     connect(metaVoIP, SIGNAL(regStateStarted(bool)), this, SLOT(on_regState_started(bool)));
     connect(metaVoIP, SIGNAL(regStateChanged(bool)), this, SLOT(on_regState_changed(bool)));
 
-    if(metaVoIP != Q_NULLPTR && metaVoIP->isLoaded())
+    if(metaVoIP != Q_NULLPTR && metaVoIP->isLoaded()){
+        // Set the flag to indicate we are starting registration
+		isRegistering = true;
         metaVoIP->createAccount("sip:"+sipUser+"@"+sipServer, "sip:"+sipServer, sipUser, sipPass);
+    }
     else
+    {
         error("Loading SIP library failed!");
+        isRegistering = false; // Reset the flag since registration failed
+    }
 }
 
 void MainWindow::on_callState_changed(int role, int callId, int state, int status, QString remoteUri)
