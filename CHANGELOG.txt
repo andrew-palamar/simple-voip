@@ -1,0 +1,17 @@
+MetaVoIP ChangeLog
+##################
+Syntax:
++/- == add or remove, description == "blabla" , platform == [A, W]
+
+Platforms:
+[*] = All Platforms
+[A] = Android
+[W] = Windows
+[I] = iOS
+[L] = Linux
+[M] = MAC
+[R] = Windows Phone
+
+20/04/2015  Dominik Fehr  <df@metasec.de> 1.0.0
+
++ Initial Release			[*]
