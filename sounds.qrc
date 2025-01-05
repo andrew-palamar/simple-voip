@@ -1,5 +1,18 @@
 <RCC>
     <qresource prefix="/">
-        <file>sounds/ring.wav</file>
+        <file>sounds/Dtmf-0.wav</file>
+        <file>sounds/Dtmf-1.wav</file>
+        <file>sounds/Dtmf-2.wav</file>
+        <file>sounds/Dtmf-3.wav</file>
+        <file>sounds/Dtmf-4.wav</file>
+        <file>sounds/Dtmf-5.wav</file>
+        <file>sounds/Dtmf-6.wav</file>
+        <file>sounds/Dtmf-7.wav</file>
+        <file>sounds/Dtmf-8.wav</file>
+        <file>sounds/Dtmf-9.wav</file>
+        <file>sounds/Dtmf-pound.wav</file>
+        <file>sounds/Dtmf-star.wav</file>
+        <file>sounds/incoming.wav</file>
+        <file>sounds/outgoing.wav</file>
     </qresource>
 </RCC>

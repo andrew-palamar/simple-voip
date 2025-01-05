@@ -35,6 +35,8 @@ private:
 
 private slots:
     void getScreen();
+    void on_regState_started(bool status);
+    void on_regState_changed(bool status);
     void on_callState_changed(int role, int callId, int state, int status, QString remoteUri);
     void on_saveButton_clicked();
     void on_phoneButton_clicked();
@@ -48,6 +50,8 @@ private slots:
     void on_b7_clicked();
     void on_b8_clicked();
     void on_b9_clicked();
+    void on_bPound_clicked();
+    void on_bStar_clicked();
     void on_hangButton_clicked();
     void on_actionAbout_Qt_triggered();
     void on_actionAbout_triggered();

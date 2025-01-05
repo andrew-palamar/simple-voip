@@ -34,7 +34,7 @@ void MyAccount::onRegStarted(OnRegStartedParam &prm)
 
 void MyAccount::onIncomingCall(OnIncomingCallParam &iprm)
 {
-    qDebug() << "Incoming call with callId" << iprm.callId;
+    qDebug() << "MetaVoIP: Incoming call with callId" << iprm.callId;
 
     parent->ring(iprm.callId);
 }

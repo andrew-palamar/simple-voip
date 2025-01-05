@@ -1,6 +1,7 @@
 #ifndef MYCALL_H
 #define MYCALL_H
 
+#include <QObject>
 #include <pjsua2.hpp>
 #include "MetaVoIP.h"
 
@@ -17,8 +18,8 @@ public:
         this->parent = parent;
         this->hold = false;
 #ifdef Q_OS_ANDROID
-        this->audioMedia = nullptr;
-        this->captureMedia = nullptr;
+        this->audioMedia = Q_NULLPTR;
+        this->captureMedia = Q_NULLPTR;
 #else
         this->audioMedia = 0;
         this->captureMedia = 0;
@@ -27,9 +28,9 @@ public:
 
     ~MyCall()
     {
-        this->audioMedia = nullptr;
-        this->captureMedia = nullptr;
-        parent = nullptr;
+        this->audioMedia = Q_NULLPTR;
+        this->captureMedia = Q_NULLPTR;
+        parent = Q_NULLPTR;
     }
 
     // Notification when call's state has changed.

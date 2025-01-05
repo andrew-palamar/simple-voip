@@ -1,5 +1,6 @@
 MetaVoIP
-Copyright 2015 metaSEC e.K.
+Copyright 2015-2016 metaSEC e.K.
+Author: Dominik Fehr <df@metasec.de>
 Licensed under the GPL, version 2.0 (copy below).
 
 

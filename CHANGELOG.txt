@@ -12,6 +12,18 @@ Platforms:
 [M] = MAC
 [R] = Windows Phone
 
+23/03/2016  Dominik Fehr  <df@metasec.de> 1.1.0
+
++ PJSIP Upgrade from 2.4.0 to 2.4.5					[*]
++ Qt Upgrade from 5.4.1 to 5.6						[*]
++ Visual Studio Upgrade from MSVC2013 to MSVC2015  	[*]
++ PJSIP fix folder linking 							[*]
++ DTMF sounds added									[*]
++ Pound & Star buttons implemented					[*]
++ Registration state implemented					[*]
++ More pre-compiled PJSIP libraries					[*]
++ Several minor improvements						[*]
+
 20/04/2015  Dominik Fehr  <df@metasec.de> 1.0.0
 
-+ Initial Release			[*]
++ Initial Release									[*]
