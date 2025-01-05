@@ -10,3 +10,4 @@ moc_predefs.h
 qrc_images.cpp
 qrc_sounds.cpp
 ui_mainwindow.h
+build/
