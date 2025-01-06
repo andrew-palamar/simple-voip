@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <pjsua2.hpp>
-#include "MetaVoIP.h"
+#include "../MetaVoIP.hpp"
 
 using namespace pj;
 

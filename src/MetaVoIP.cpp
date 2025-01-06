@@ -1,6 +1,6 @@
-#include "MetaVoIP.h"
+#include "MetaVoIP.hpp"
 #include <QDebug>
-#include <QMessageBox>
+// #include <QMessageBox>
 #include <QThread>
 
 MetaVoIP::MetaVoIP(QString protocol, int port, QObject *parent) : QObject(parent)
@@ -15,7 +15,7 @@ MetaVoIP::MetaVoIP(QString protocol, int port, QObject *parent) : QObject(parent
         tCfg.port = port;
         call = Q_NULLPTR;
 
-        if(protocol=="TCP")
+        if (protocol == "TCP")
             ep.transportCreate(PJSIP_TRANSPORT_TCP, tCfg);
         else
             ep.transportCreate(PJSIP_TRANSPORT_UDP, tCfg);
@@ -25,8 +25,7 @@ MetaVoIP::MetaVoIP(QString protocol, int port, QObject *parent) : QObject(parent
 
         loaded = true;
 
-        qDebug()<< "*** PJSUA2 STARTED ***";
-
+        qDebug() << "*** PJSUA2 STARTED ***";
     }
     catch (Error &err)
     {
@@ -64,9 +63,8 @@ void MetaVoIP::createAccount(QString idUri, QString registrarUri, QString user, 
         account->create(aCfg);
 
         qDebug() << "MetaVoIP: Account creation successful";
-
     }
-    catch(Error& err)
+    catch (Error &err)
     {
         qDebug() << "MetaVoIP: Account creation failed" << err.info().c_str();
     }
@@ -74,16 +72,15 @@ void MetaVoIP::createAccount(QString idUri, QString registrarUri, QString user, 
 
 void MetaVoIP::registerAccount()
 {
-    if(account)
+    if (account)
     {
         try
         {
             account->setRegistration(true);
 
             qDebug() << "MetaVoIP: Register account successfull";
-
         }
-        catch(Error& err)
+        catch (Error &err)
         {
             qDebug() << "MetaVoIP: Register failed" << err.info().c_str();
         }
@@ -92,24 +89,23 @@ void MetaVoIP::registerAccount()
 
 void MetaVoIP::unregisterAccount()
 {
-    if(account)
+    if (account)
     {
         try
         {
             account->setRegistration(false);
             qDebug() << "MetaVoIP: Unregister account successfull";
-
         }
-        catch(Error& err)
+        catch (Error &err)
         {
-            qDebug() << "MetaVoIP: Unregister error: " << err.info().c_str() << endl;
+            qDebug() << "MetaVoIP: Unregister error: " << err.info().c_str() << Qt::endl;
         }
     }
 }
 
 void MetaVoIP::makeCall(QString number)
 {
-    if(account)
+    if (account)
     {
         qDebug() << "MetaVoIP: Attempting to create call";
 
@@ -123,9 +119,8 @@ void MetaVoIP::makeCall(QString number)
             call->makeCall(number.toStdString(), prm);
 
             qDebug() << "MetaVoIP: makeCall was called with" << number;
-
         }
-        catch(Error& err)
+        catch (Error &err)
         {
             qDebug() << "MetaVoIP: Call could not be made" << err.info().c_str();
         }
@@ -134,7 +129,7 @@ void MetaVoIP::makeCall(QString number)
 
 void MetaVoIP::ring(int callId)
 {
-    if(account != Q_NULLPTR)
+    if (account != Q_NULLPTR)
     {
         try
         {
@@ -145,7 +140,7 @@ void MetaVoIP::ring(int callId)
             prm.statusCode = PJSIP_SC_RINGING;
             call->answer(prm);
         }
-        catch(Error& err)
+        catch (Error &err)
         {
             qDebug() << "Ringing failed" << err.info().c_str();
         }
@@ -154,7 +149,7 @@ void MetaVoIP::ring(int callId)
 
 void MetaVoIP::acceptCall(int callId)
 {
-    if(account && call != Q_NULLPTR)
+    if (account && call != Q_NULLPTR)
     {
         qDebug() << "MetaVoIP: Accepting call with callId" << callId;
 
@@ -165,7 +160,7 @@ void MetaVoIP::acceptCall(int callId)
             prm.statusCode = PJSIP_SC_OK;
             call->answer(prm);
         }
-        catch(Error& err)
+        catch (Error &err)
         {
             qDebug() << "MetaVoIP: Accepting failed" << err.info().c_str();
         }
@@ -174,7 +169,7 @@ void MetaVoIP::acceptCall(int callId)
 
 bool MetaVoIP::hangupCall(int callId)
 {
-    if(account && call != Q_NULLPTR)
+    if (account && call != Q_NULLPTR)
     {
         qDebug() << "MetaVoIP: Hang up on callId" << callId;
 
@@ -184,7 +179,7 @@ bool MetaVoIP::hangupCall(int callId)
 
             CallOpParam prm;
 
-            if(ci.lastStatusCode == PJSIP_SC_RINGING)
+            if (ci.lastStatusCode == PJSIP_SC_RINGING)
             {
                 prm.statusCode = PJSIP_SC_BUSY_HERE;
             }
@@ -193,7 +188,7 @@ bool MetaVoIP::hangupCall(int callId)
                 prm.statusCode = PJSIP_SC_OK;
             }
 
-            if(callId>=0 && callId<(int)epCfg.uaConfig.maxCalls)
+            if (callId >= 0 && callId < (int)epCfg.uaConfig.maxCalls)
                 call->hangup(prm);
             else
                 qDebug() << "MetaVoIP: Max calls bug";
@@ -202,7 +197,7 @@ bool MetaVoIP::hangupCall(int callId)
 
             return 1;
         }
-        catch(Error& err)
+        catch (Error &err)
         {
             qDebug() << "MetaVoIP: HangupCall failed" << err.info().c_str();
         }
@@ -213,7 +208,7 @@ bool MetaVoIP::hangupCall(int callId)
 
 bool MetaVoIP::holdCall(int callId)
 {
-    if(account && call != Q_NULLPTR)
+    if (account && call != Q_NULLPTR)
     {
         try
         {
@@ -221,7 +216,7 @@ bool MetaVoIP::holdCall(int callId)
 
             CallOpParam prm(true);
 
-            if(!call->isOnHold())
+            if (!call->isOnHold())
             {
                 qDebug() << "MetaVoIP: Call will be hold";
 
@@ -242,7 +237,7 @@ bool MetaVoIP::holdCall(int callId)
 
             return 1;
         }
-        catch(Error& err)
+        catch (Error &err)
         {
             qDebug() << "MetaVoIP: Accepting failed" << err.info().c_str();
         }
@@ -253,7 +248,7 @@ bool MetaVoIP::holdCall(int callId)
 
 bool MetaVoIP::transferCall(QString destination)
 {
-    if(account && call != Q_NULLPTR)
+    if (account && call != Q_NULLPTR)
     {
         try
         {
@@ -265,7 +260,7 @@ bool MetaVoIP::transferCall(QString destination)
 
             return 1;
         }
-        catch(Error& err)
+        catch (Error &err)
         {
             qDebug() << "MetaVoIP: Accepting failed" << err.info().c_str();
         }
@@ -294,14 +289,14 @@ void MetaVoIP::emitCallStateChanged(int role, int callId, int state, int status,
 
 void MetaVoIP::sendDtmf(QString num)
 {
-    if(call != Q_NULLPTR)
+    if (call != Q_NULLPTR)
     {
         try
         {
             call->dialDtmf(num.toStdString());
             qDebug() << "MetaVoIP: Dtmf" << num << " sent";
         }
-        catch(Error& err)
+        catch (Error &err)
         {
             qDebug() << "MetaVoIP: Dtmf failed" << err.info().c_str();
         }

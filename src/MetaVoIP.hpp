@@ -1,8 +1,8 @@
 #ifndef METAVOIP_H
 #define METAVOIP_H
 
-#include "MyAccount.h"
-#include "MyCall.h"
+#include "pjsip/MyAccount.hpp"
+#include "pjsip/MyCall.hpp"
 
 #include <pjsua2.hpp>
 
@@ -10,7 +10,8 @@
 #include <QDebug>
 #include <QObject>
 
-extern "C" {
+extern "C"
+{
 #include <pjlib.h>
 #include <pjlib-util.h>
 #include <pjmedia.h>
@@ -24,7 +25,7 @@ extern "C" {
 class MyAccount;
 class MyCall;
 
-class MetaVoIP: public QObject
+class MetaVoIP : public QObject
 {
     Q_OBJECT
 

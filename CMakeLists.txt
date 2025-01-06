@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(MetaVoIP VERSION 1.1.0 LANGUAGES CXX)
+project(simple-voip VERSION 0.5.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,50 +9,42 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# Aqtinstall QT5 path. Could be commented if Deb package used
-set(CMAKE_PREFIX_PATH "/opt/Qt/5.15.8/gcc_64/")
+# Aqtinstall QT5 path. Set externally by bash script
+# set(CMAKE_PREFIX_PATH "/opt/Qt/5.15.8/gcc_64/")
 
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
     set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
-find_package(Qt5 COMPONENTS Core Gui Widgets Quick Multimedia REQUIRED)
+find_package(Qt5 COMPONENTS Core Quick Multimedia REQUIRED)
 
-# set(PJSIP_DIR "${CMAKE_SOURCE_DIR}/third-party/pjproject/x86_64-unknown-linux-gnu")
+# PJSIP LIB
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PJSIP libpjproject>=2.15 REQUIRED)
+include_directories(${PJSIP_INCLUDE_DIRS})
+
 
 set(SOURCES
-    main.cpp
-    mainwindow.cpp
-    MetaVoIP.cpp
-    MyAccount.cpp
-    MyCall.cpp
-    buttons.cpp
-    sip.cpp
+    src/main.cpp
+    src/MetaVoIP.cpp
+    src/pjsip/MyAccount.cpp
+    src/pjsip/MyCall.cpp
+    src/backend.cpp
+    src/buttons.cpp
 )
 
 set(HEADERS
-    mainwindow.h
-    MetaVoIP.h
-    MyAccount.h
-    MyCall.h
+    src/MetaVoIP.hpp
+    src/pjsip/MyAccount.hpp
+    src/pjsip/MyCall.hpp
+    src/backend.hpp
 )
 
-set(FORMS
-    mainwindow.ui
-)
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} qml.qrc images.qrc sounds.qrc)
 
-set(RESOURCES
-    images.qrc
-    sounds.qrc
-)
+target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 
-# set(PJPROJECT_INCLUDE_DIRS "${PJSIP_DIR}/include")
-# set(PJPROJECT_LIBRARY_DIRS "${PJSIP_DIR}/lib")
-# include_directories(${PJPROJECT_INCLUDE_DIRS})
-# link_directories(${PJPROJECT_LIBRARY_DIRS})
-
-
-set(LIBRARY_FILES 
+set(PJPROJECT_LIBRARY_ORDER
     pj
     pjlib-util
     pjsua
@@ -64,22 +56,14 @@ set(LIBRARY_FILES
     pjmedia-audiodev
     pjnath
     g7221codec
-    gsmcodec
-    ilbccodec
-    speex
+    # gsmcodec
+    # ilbccodec
+    # speex
     resample
-    srtp
+    # srtp
 )
-
-
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${FORMS} ${RESOURCES})
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Gui Qt5::Widgets Qt5::Quick Qt5::Multimedia ${LIBRARY_FILES})
-
-
-qt5_add_resources(RES_SOURCES "${CMAKE_SOURCE_DIR}/resources.qrc")
+# No way to use ${PJSIP_LIBRARIES} here. The order is important!
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Quick Qt5::Multimedia ${PJPROJECT_LIBRARY_ORDER})
 
 if(UNIX AND NOT APPLE)
     add_compile_definitions(PJ_NATIVE_STRING_IS_UNICODE=1)
@@ -88,3 +72,13 @@ if(UNIX AND NOT APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wdeprecated")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wdeprecated")
 endif()
+
+# Installation target. Example: '-DCMAKE_INSTALL_PREFIX=/usr' - installs ${PROJECT_NAME} binary to /usr/bin/
+install(TARGETS ${PROJECT_NAME}
+        RUNTIME DESTINATION bin)
+
+# Debian package using cpack
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_CONTACT "Andrew Palamarchuk <orhalfmer@gmail.com>")
+set(CPACK_GENERATOR DEB)
+include(CPack)

@@ -1,10 +1,10 @@
-#include "MyAccount.h"
-#include "MyCall.h"
+#include "MyAccount.hpp"
+#include "MyCall.hpp"
 
 #include <QString>
 #include <QDebug>
 
-#include "MetaVoIP.h"
+// #include "../MetaVoIP.hpp"
 
 MyAccount::MyAccount(MetaVoIP *parent)
 {

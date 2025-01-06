@@ -2,7 +2,7 @@
 #define MYACCOUNT_H
 
 #include <pjsua2.hpp>
-#include "MetaVoIP.h"
+#include "../MetaVoIP.hpp"
 
 #include <QString>
 #include <QObject>

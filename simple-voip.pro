@@ -1,9 +1,9 @@
 ###
 #BASIC
 ###
-QT          +=  core gui widgets quick multimedia
+QT          +=  core quick multimedia
 
-TARGET      =   MetaVoIP
+TARGET      =   simple-voip
 TEMPLATE    =   app
 
 ###
@@ -40,29 +40,23 @@ DEFINES     +=  PJ_IS_LITTLE_ENDIAN=1 \
 ###
 #SOURCE FILES
 ###
-SOURCES     +=  main.cpp\
-                mainwindow.cpp \
-                MetaVoIP.cpp \
-                MyAccount.cpp \
-                MyCall.cpp \
-    buttons.cpp \
-    sip.cpp
+SOURCES     +=  src/main.cpp \
+                src/backend.cpp \
+                src/MetaVoIP.cpp \
+                src/pjsip/MyAccount.cpp \
+                src/pjsip/MyCall.cpp \
+                src/buttons.cpp
 
-HEADERS     +=  mainwindow.h \
-                MetaVoIP.h \
-                MyAccount.h \
-                MyCall.h
-
-FORMS       +=  mainwindow.ui
+HEADERS     +=  src/backend.hpp \
+                src/MetaVoIP.hpp \
+                src/pjsip/MyAccount.hpp \
+                src/pjsip/MyCall.hpp
 
 ###
 #INCLUDES
 ###
-#INCLUDEPATH +=  $$PWD/pjproject-2.4.5/pjsip/include \
-#                $$PWD/pjproject-2.4.5/pjlib/include \
-#                $$PWD/pjproject-2.4.5/pjlib-util/include \
-#                $$PWD/pjproject-2.4.5/pjmedia/include \
-#                $$PWD/pjproject-2.4.5/pjnath/include
+#PJSIP_DIR = $$PWD/third-party/pjproject/x86_64-unknown-linux-gnu
+#INCLUDEPATH +=  $$PJSIP_DIR/include
 
 ###
 #OTHER FILES
@@ -181,10 +175,18 @@ LIBS        +=  \
                 #-lg7221codec-arm-unknown-linux-androideabi \
 }
 
-RESOURCES   +=  images.qrc \
+RESOURCES   +=  qml.qrc \
+                images.qrc \
                 sounds.qrc
 
 # Add the -Wdeprecated warning
 QMAKE_CXXFLAGS += -Wdeprecated
 QMAKE_CFLAGS += -Wdeprecated
+
+#!isEmpty(defined(LD_LIBRARY_PATH)) {
+#    message("LD_LIBRARY_PATH is already defined")
+#} else {
+#    message("Setting LD_LIBRARY_PATH")
+#    QMAKE_LFLAGS += -Wl,-rpath,$$PJSIP_DIR/lib
+#}
 
