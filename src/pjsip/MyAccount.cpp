@@ -4,7 +4,6 @@
 #include <QString>
 #include <QDebug>
 
-// #include "../MetaVoIP.hpp"
 
 MyAccount::MyAccount(MetaVoIP *parent)
 {

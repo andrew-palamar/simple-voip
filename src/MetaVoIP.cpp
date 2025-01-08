@@ -1,7 +1,6 @@
 #include "MetaVoIP.hpp"
 #include <QDebug>
-// #include <QMessageBox>
-#include <QThread>
+#include <utility>
 
 MetaVoIP::MetaVoIP(QString protocol, int port, QObject *parent) : QObject(parent)
 {
@@ -301,4 +300,12 @@ void MetaVoIP::sendDtmf(QString num)
             qDebug() << "MetaVoIP: Dtmf failed" << err.info().c_str();
         }
     }
+}
+
+void MetaVoIP::updateMediaDevices(void)
+{
+    // Create Audio Device Manager instance
+    AudioDeviceManager *audioDeviceManager = new AudioDeviceManager(this);
+    emit inputListChanged(audioDeviceManager->getInputDevices());
+    emit outputListChanged(audioDeviceManager->getOutputDevices());
 }

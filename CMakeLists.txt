@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 project(simple-voip VERSION 0.5.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_AUTOMOC ON)
@@ -29,6 +29,7 @@ set(SOURCES
     src/MetaVoIP.cpp
     src/pjsip/MyAccount.cpp
     src/pjsip/MyCall.cpp
+    src/pjsip/AudioDeviceManager.cpp
     src/backend.cpp
     src/buttons.cpp
 )
@@ -37,6 +38,7 @@ set(HEADERS
     src/MetaVoIP.hpp
     src/pjsip/MyAccount.hpp
     src/pjsip/MyCall.hpp
+    src/pjsip/AudioDeviceManager.hpp
     src/backend.hpp
 )
 

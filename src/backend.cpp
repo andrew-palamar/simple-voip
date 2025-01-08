@@ -12,9 +12,26 @@
 #include "MetaVoIP.hpp"
 #include <QDebug>
 
-BackEnd::BackEnd(QObject *parent) : QObject(parent)
+// BackEnd::BackEnd(QObject *parent) : QObject(parent)
+BackEnd::BackEnd(QObject *parent) : QObject(parent), metaVoIP(nullptr), isRegistering(false)
 {
 	getSettings();
+
+	QString sipProto = "UDP";
+	QString sipPortText = "5060";
+	// Create MetaVoIP instance regardless of SIP settings
+	metaVoIP = new MetaVoIP(sipProto, sipPortText.toInt());
+	if (metaVoIP != Q_NULLPTR && metaVoIP->isLoaded())
+	{
+		// Connect Audio devices lists
+		connect(metaVoIP, SIGNAL(inputListChanged(QStringList)), this, SLOT(on_InputListChanged(QStringList)));
+		connect(metaVoIP, SIGNAL(outputListChanged(QStringList)), this, SLOT(on_OutputListChanged(QStringList)));
+	}
+
+	// Update media devices to emit lists
+	metaVoIP->updateMediaDevices();
+	emit audioInputChanged();
+	emit audioOutputChanged();
 
 	if (getSipUserStr() != "" && getSipPassStr() != "" && getSipServerStr() != "" && getSipPortStr() != "")
 		registerSip();
@@ -36,7 +53,7 @@ void BackEnd::registerSip()
 		}
 	}
 	// Backend QML current protocol; CUrrent procol text
-	metaVoIP = new MetaVoIP(sipProto, sipPortText.toInt());
+	// metaVoIP = new MetaVoIP(sipProto, sipPortText.toInt());
 	sipUser = sipUser.simplified();
 	sipServer = sipServer.simplified();
 	sipPass = sipPass.simplified();
@@ -170,6 +187,38 @@ void BackEnd::on_RegStateChanged(bool status)
 	}
 }
 
+void BackEnd::on_InputListChanged(QStringList list)
+{
+	if (list != m_inputsList)
+	{
+		m_inputsList = list;
+		int index = list.indexOf(getInputDeviceStr());
+		index == -1 ? setAudioInputIndex(-1) : setAudioInputIndex(index);
+		emit audioInputsChanged();
+	}
+}
+
+void BackEnd::on_OutputListChanged(QStringList list)
+{
+	if (list != m_outputsList)
+	{
+		m_outputsList = list;
+		int index = list.indexOf(getOutputDeviceStr());
+		index == -1 ? setAudioOutputIndex(-1) : setAudioOutputIndex(index);
+		emit audioOutputsChanged();
+	}
+}
+
+QStringList BackEnd::getInputDevices() const
+{
+	return m_inputsList;
+}
+
+QStringList BackEnd::getOutputDevices() const
+{
+	return m_outputsList;
+}
+
 const QString BackEnd::getStr()
 {
 	return m_statusStr;
@@ -260,6 +309,16 @@ void BackEnd::setSipPortStr(const QString str)
 	}
 }
 
+const QString BackEnd::getInputDeviceStr()
+{
+	return m_currentInputDevice;
+}
+
+const QString BackEnd::getOutputDeviceStr()
+{
+	return m_currentOutputDevice;
+}
+
 void BackEnd::exit()
 {
 	emit wantToQuit();
@@ -277,6 +336,9 @@ void BackEnd::getSettings()
 			setSipPassStr(settings.readLine().simplified());
 			setProtocolIndex(settings.readLine().simplified().toInt());
 			setSipPortStr(settings.readLine().simplified());
+			// Set Audio devices
+			setInputDevice(settings.readLine().simplified());
+			setOutputDevice(settings.readLine().simplified());
 			settings.close();
 		}
 		else
@@ -307,6 +369,10 @@ void BackEnd::on_saveButton_clicked()
 			out << QString::number(getProtocolIndex());
 			out << "\n";
 			out << getSipPortStr().simplified();
+			out << "\n";
+			out << getInputDeviceStr().simplified();
+			out << "\n";
+			out << getOutputDeviceStr().simplified();
 			settings.close();
 
 			registerSip();
@@ -316,6 +382,34 @@ void BackEnd::on_saveButton_clicked()
 	}
 	else
 		handleError("Please insert necessary values");
+}
+
+int BackEnd::getAudioInputIndex()
+{
+	return m_currentInputDeviceIndex;
+}
+
+void BackEnd::setAudioInputIndex(const int &currentIndex)
+{
+	if (m_currentInputDeviceIndex != currentIndex)
+	{
+		m_currentInputDeviceIndex = currentIndex;
+		emit audioInputIndexChanged();
+	}
+}
+
+int BackEnd::getAudioOutputIndex()
+{
+	return m_currentOutputDeviceIndex;
+}
+
+void BackEnd::setAudioOutputIndex(const int &currentIndex)
+{
+	if (m_currentOutputDeviceIndex != currentIndex)
+	{
+		m_currentOutputDeviceIndex = currentIndex;
+		emit audioOutputIndexChanged();
+	}
 }
 
 int BackEnd::getProtocolIndex()
@@ -338,6 +432,26 @@ void BackEnd::setSipProtocol(const int &currentIndex)
 	{
 		m_currentProtocolIndex = currentIndex;
 		emit protocolIndexChanged();
+	}
+}
+
+void BackEnd::setInputDevice(const QString &str)
+{
+	qDebug() << str;
+	if (m_currentInputDevice != str)
+	{
+		m_currentInputDevice = str;
+		emit audioInputChanged();
+	}
+}
+
+void BackEnd::setOutputDevice(const QString &str)
+{
+	qDebug() << str;
+	if (m_currentOutputDevice != str)
+	{
+		m_currentOutputDevice = str;
+		emit audioOutputChanged();
 	}
 }
 

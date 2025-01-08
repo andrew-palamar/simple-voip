@@ -3,6 +3,7 @@
 
 #include "pjsip/MyAccount.hpp"
 #include "pjsip/MyCall.hpp"
+#include "pjsip/AudioDeviceManager.hpp"
 
 #include <pjsua2.hpp>
 
@@ -43,6 +44,8 @@ public:
     bool transferCall(QString destination);
     void ring(int callId);
     void sendDtmf(QString num);
+    void updateMediaDevices(void);
+
     inline bool isLoaded()
     {
         return loaded;
@@ -66,10 +69,14 @@ signals:
     void regStateStarted(bool status);
     void regStateChanged(bool status);
     void callStateChanged(int role, int callId, int state, int status, QString remoteUri);
+    void inputListChanged(QStringList);
+    void outputListChanged(QStringList);
 
 private:
     EpConfig epCfg;
     Endpoint ep;
+    // AudDevManager audDevManager;
+    AudioDevInfoVector2 media_devices;
     TransportConfig tCfg;
     AccountConfig aCfg;
     MyAccount *account;
