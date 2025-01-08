@@ -19,11 +19,11 @@ ApplicationWindow {
             title: "&Help"
             Action {
                 text: "&About"
-                icon.source: "images/logo_transparent.png"
+                icon.source: "/images/logo_transparent.png"
             }
             Action {
                 text: "About &Qt"
-                icon.source: "images/about.png"
+                icon.source: "/images/about.png"
             }
         }
     }
@@ -239,7 +239,7 @@ ApplicationWindow {
                     RoundButton {
                         radius: height / 4
                         anchors.fill: parent
-                        icon.source: "images/phone.png"
+                        icon.source: "/images/phone.png"
                         icon.height: 80
                         icon.width: 80
                         onClicked: backend.on_phoneButton_clicked()
@@ -255,7 +255,7 @@ ApplicationWindow {
                     RoundButton {
                         radius: height / 4
                         anchors.fill: parent
-                        icon.source: "images/phone_hang.png"
+                        icon.source: "/images/phone_hang.png"
                         icon.height: 80
                         icon.width: 80
                         onClicked: backend.on_hangButton_clicked()
@@ -302,8 +302,6 @@ ApplicationWindow {
                     text: "SIP Username:"
                     font.pixelSize: 24
                 }
-            }
-            RowLayout {
                 TextField {
                     id: sipUser
                     placeholderText: "1234"
@@ -322,8 +320,6 @@ ApplicationWindow {
                     text: "SIP Password:"
                     font.pixelSize: 24
                 }
-            }
-            RowLayout {
                 TextField {
                     id: sipPass
                     echoMode: TextInput.Password
@@ -342,8 +338,6 @@ ApplicationWindow {
                     text: "SIP Server:"
                     font.pixelSize: 24
                 }
-            }
-            RowLayout {
                 TextField {
                     id: sipServer
                     placeholderText: "192.168.31.222"
@@ -362,9 +356,6 @@ ApplicationWindow {
                     text: "SIP Port:"
                     font.pixelSize: 24
                 }
-            }
-
-            RowLayout {
                 TextField {
                     id: sipPort
                     placeholderText: "5060"
@@ -383,8 +374,6 @@ ApplicationWindow {
                     text: "SIP Protocol:"
                     font.pixelSize: 24
                 }
-            }
-            RowLayout {
                 ComboBox {
                     id: sipProtoBox
                     Layout.fillWidth: true
@@ -393,6 +382,44 @@ ApplicationWindow {
                     currentIndex: backend.currentProtocolIndex
                     onCurrentIndexChanged: {
                         backend.setProtocolIndex(currentIndex);
+                    }
+                }
+            }
+            RowLayout {
+                Label {
+                    text: "Input Device:"
+                    font.pixelSize: 24
+                }
+            }
+            RowLayout {
+                ComboBox {
+                    id: inputDeviceComboBox
+                    Layout.fillWidth: true
+                    font.pixelSize: 24
+                    model: backend.inputDevicesList
+                    currentIndex: backend.audioInputIndex
+                    onCurrentTextChanged: {
+                        console.log("Selected input device: " + currentText);
+                        backend.setInputDevice(currentText);
+                    }
+                }
+            }
+            RowLayout {
+                Label {
+                    text: "Output Device:"
+                    font.pixelSize: 24
+                }
+            }
+            RowLayout {
+                ComboBox {
+                    id: outputDeviceComboBox
+                    Layout.fillWidth: true
+                    font.pixelSize: 24
+                    model: backend.inputDevicesList
+                    currentIndex: backend.audioOutputIndex
+                    onCurrentTextChanged: {
+                        console.log("Selected output device: " + currentText);
+                        backend.setOutputDevice(currentText);
                     }
                 }
             }
@@ -435,6 +462,43 @@ ApplicationWindow {
                 errorDialog.open();
             }
         }
+
+        function onAudioInputsChanged() {
+            // Get the current input device string
+            var currentInputDeviceStr = backend.getInputDeviceStr();
+
+            // Check if the string is not empty
+            if (currentInputDeviceStr !== "") {
+                // Get the input devices from the model
+                var devices = backend.getInputDevices();
+                var index = devices.indexOf(currentInputDeviceStr);
+                // console.log("device`s index: " + index);
+
+                // Check if the value exists in the model
+                if (index !== -1) {
+                    // Set the current index of the ComboBox
+                    inputDeviceComboBox.currentIndex = index;
+                }
+            }
+        }
+
+        // function onAudioOutputChanged() {
+        //     // Get the current input device string
+        //     var currentOutputDeviceStr = backend.getOutputDeviceStr();
+
+        //     // Check if the string is not empty
+        //     if (currentOutputDeviceStr !== "") {
+        //         // Get the input devices from the model
+        //         var devices = backend.getOutputDevices();
+        //         var index = devices.indexOf(currentOutputDeviceStr);
+
+        //         // Check if the value exists in the model
+        //         if (index !== -1) {
+        //             // Set the current index of the ComboBox
+        //             outputDeviceComboBox.currentIndex = index;
+        //         }
+        //     }
+        // }
     }
 }// StackLayout end
 

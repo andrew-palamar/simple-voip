@@ -6,7 +6,7 @@
 int main(int argc, char *argv[])
 {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	// Fix for Luckfox 5" display. Without it Screen.width and so on will be twice lower. 360*360px instead 720*720px
+	// Fix for Luckfox 5" display. Without it Screen.width and so on sizes will be twice lower. For example 360*360px instead 720*720px
 	// QCoreApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
 	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 	context->setContextProperty("backend", &backend);
 	// engine.rootContext()->setContextProperty("applicationDirPath", QGuiApplication::applicationDirPath());
 
-	const QUrl url(QStringLiteral("qrc:/main.qml"));
+	const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
 	QObject::connect(
 		&engine,
 		&QQmlApplicationEngine::objectCreated,
