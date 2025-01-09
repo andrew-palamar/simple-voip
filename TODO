@@ -1,4 +1,5 @@
 # simplle-voip TODO list
 
 - Add program and Qt about. MenuBar hidden
-- Audio devices selection
+- Connect / Disconnect button?
+- Logging to tab or file

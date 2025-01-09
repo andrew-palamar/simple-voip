@@ -114,7 +114,6 @@ private:
 	int callId;
 	int m_currentProtocolIndex = 0;
 	QString sipState, sipUser, sipServer, sipPass, sipProto, sipPortText;
-	// QStringList m_inputsList = {"default", "lavrate", "samplerate", "speexrate", "pulse", "speex", "upmix", "vdownmix", "hw:CARD=sofessx8336,DEV=0", "hw:CARD=sofessx8336,DEV=1", "hw:CARD=sofessx8336,DEV=2", "plughw:CARD=sofessx8336,DEV=0", "plughw:CARD=sofessx8336,DEV=1", "plughw:CARD=sofessx8336,DEV=2", "sysdefault:CARD=sofessx8336", "dsnoop:CARD=sofessx8336,DEV=0", "dsnoop:CARD=sofessx8336,DEV=1", "dsnoop:CARD=sofessx8336,DEV=2"};
 	QStringList m_inputsList;
 	QStringList m_outputsList;
 	void getSettings();

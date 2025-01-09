@@ -2,7 +2,7 @@
 #include <QDebug>
 #include <utility>
 
-MetaVoIP::MetaVoIP(QString protocol, int port, QObject *parent) : QObject(parent)
+MetaVoIP::MetaVoIP(QObject *parent) : QObject(parent)
 {
     try
     {
@@ -11,13 +11,7 @@ MetaVoIP::MetaVoIP(QString protocol, int port, QObject *parent) : QObject(parent
 
         ep.libCreate();
         ep.libInit(epCfg);
-        tCfg.port = port;
         call = Q_NULLPTR;
-
-        if (protocol == "TCP")
-            ep.transportCreate(PJSIP_TRANSPORT_TCP, tCfg);
-        else
-            ep.transportCreate(PJSIP_TRANSPORT_UDP, tCfg);
 
         // Start the library (worker threads etc)
         ep.libStart();
@@ -44,6 +38,15 @@ MetaVoIP::~MetaVoIP()
     {
         qDebug() << "MetaVoIP: Lib deleting failed" << err.info().c_str();
     }
+}
+
+void MetaVoIP::initUA(QString protocol, int port)
+{
+    tCfg.port = port;
+    if (protocol == "TCP")
+        ep.transportCreate(PJSIP_TRANSPORT_TCP, tCfg);
+    else
+        ep.transportCreate(PJSIP_TRANSPORT_UDP, tCfg);
 }
 
 void MetaVoIP::createAccount(QString idUri, QString registrarUri, QString user, QString password)
@@ -304,8 +307,47 @@ void MetaVoIP::sendDtmf(QString num)
 
 void MetaVoIP::updateMediaDevices(void)
 {
-    // Create Audio Device Manager instance
-    AudioDeviceManager *audioDeviceManager = new AudioDeviceManager(this);
-    emit inputListChanged(audioDeviceManager->getInputDevices());
-    emit outputListChanged(audioDeviceManager->getOutputDevices());
+    if (audioDeviceManager != Q_NULLPTR)
+    {
+        try
+        {
+            audioDeviceManager->initializeDevices();
+            emit inputListChanged(audioDeviceManager->getInputDevices());
+            emit outputListChanged(audioDeviceManager->getOutputDevices());
+        }
+        catch (Error &err)
+        {
+            qDebug() << "MetaVoIP: updateMediaDevices failed" << err.info().c_str();
+        }
+    }
+}
+
+void MetaVoIP::setAudioSource(QString device)
+{
+    if (audioDeviceManager != Q_NULLPTR)
+    {
+        try
+        {
+            audioDeviceManager->setCaptureDev(device);
+        }
+        catch (Error &err)
+        {
+            qDebug() << "MetaVoIP: setAudioSource failed" << err.info().c_str();
+        }
+    }
+}
+
+void MetaVoIP::setAudioSink(QString device)
+{
+    if (audioDeviceManager != Q_NULLPTR)
+    {
+        try
+        {
+            audioDeviceManager->setPlaybackDev(device);
+        }
+        catch (Error &err)
+        {
+            qDebug() << "MetaVoIP: setAudioSink failed" << err.info().c_str();
+        }
+    }
 }

@@ -3,16 +3,14 @@
 
 AudioDeviceManager::AudioDeviceManager(QObject *parent) : QObject(parent), m_audDevManager(pj::Endpoint::instance().audDevManager())
 {
-    initializeDevices();
 }
 
 void AudioDeviceManager::initializeDevices()
 {
-    AudDevManager &audDevManager = Endpoint::instance().audDevManager();
-    unsigned count = audDevManager.getDevCount();
+    unsigned count = m_audDevManager.getDevCount();
     qDebug() << "Available Audio Devices: " << count;
 
-    auto media_devices = audDevManager.enumDev2();
+    auto media_devices = m_audDevManager.enumDev2();
 
     for (const auto &info : media_devices)
     {
@@ -32,14 +30,6 @@ void AudioDeviceManager::initializeDevices()
 
         // qDebug() << "Device " << info.id << ": " << deviceName << " - Inputs:" << info.inputCount << " Outputs:" << info.outputCount;
     }
-    // Lookup device ID by its name. Name could be found running 'aplay -L' and 'arecord -L'
-    // qDebug() << "lookupDev(): " << audDevManager.lookupDev("ALSA", "pulse");
-
-    // qDebug() << "Current input device: " << audDevManager.getCaptureDev();
-    // qDebug() << "Current output device: " << audDevManager.getPlaybackDev();
-    // Should not be called for device numbers < 0
-    // qDebug() << "Current input volume: " << audDevManager.getInputVolume();
-    // qDebug() << "Current output volume: " << audDevManager.getOutputVolume();
 }
 
 QStringList AudioDeviceManager::getInputDevices() const
@@ -50,4 +40,68 @@ QStringList AudioDeviceManager::getInputDevices() const
 QStringList AudioDeviceManager::getOutputDevices() const
 {
     return m_outputDevices;
+}
+
+uint32_t AudioDeviceManager::getCaptureDev() const
+{
+    return m_audDevManager.getCaptureDev();
+}
+
+void AudioDeviceManager::setCaptureDev(QString device)
+{
+    // Lookup device ID by its name. Name could be found running 'aplay -L' and 'arecord -L'
+    auto devId = m_audDevManager.lookupDev("ALSA", device.toStdString());
+    if (devId >= 0) // Check if device ID is valid
+    {
+        m_audDevManager.setCaptureDev(devId);
+    }
+    else
+    {
+        qDebug() << "Failed to set capture device: Device not found.";
+    }
+}
+
+// Get current output device
+uint32_t AudioDeviceManager::getPlaybackDev() const
+{
+    return m_audDevManager.getPlaybackDev();
+}
+
+void AudioDeviceManager::setPlaybackDev(QString device)
+{
+    auto devId = m_audDevManager.lookupDev("ALSA", device.toStdString());
+    if (devId >= 0) // Check if device ID is valid
+    {
+        m_audDevManager.setPlaybackDev(devId);
+    }
+    else
+    {
+        qDebug() << "Failed to set playback device: Device not found.";
+    }
+}
+
+// Get current input volume, percent
+uint32_t AudioDeviceManager::getInputVolume() const
+{
+    uint32_t device;
+    m_audDevManager.getCaptureDev() >= 0 ? device = m_audDevManager.getInputVolume() : device = -1;
+    return device;
+}
+
+// Get current output volume, percent
+uint32_t AudioDeviceManager::getOutputVolume() const
+{
+    uint32_t device;
+    m_audDevManager.getPlaybackDev() >= 0 ? device = m_audDevManager.getOutputVolume() : device = -1;
+    return device;
+}
+
+void AudioDeviceManager::setInputVolume(uint32_t volume, bool keep)
+{
+    m_audDevManager.setInputVolume(volume, keep);
+}
+
+void AudioDeviceManager::setOutputVolume(uint32_t volume, bool keep)
+{
+    m_audDevManager.setOutputVolume(volume, keep);
 }

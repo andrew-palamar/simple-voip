@@ -399,7 +399,7 @@ ApplicationWindow {
                     model: backend.inputDevicesList
                     currentIndex: backend.audioInputIndex
                     onCurrentTextChanged: {
-                        console.log("Selected input device: " + currentText);
+                        // console.log("Selected input device: " + currentText);
                         backend.setInputDevice(currentText);
                     }
                 }
@@ -418,7 +418,7 @@ ApplicationWindow {
                     model: backend.inputDevicesList
                     currentIndex: backend.audioOutputIndex
                     onCurrentTextChanged: {
-                        console.log("Selected output device: " + currentText);
+                        // console.log("Selected output device: " + currentText);
                         backend.setOutputDevice(currentText);
                     }
                 }

@@ -17,10 +17,8 @@ BackEnd::BackEnd(QObject *parent) : QObject(parent), metaVoIP(nullptr), isRegist
 {
 	getSettings();
 
-	QString sipProto = "UDP";
-	QString sipPortText = "5060";
-	// Create MetaVoIP instance regardless of SIP settings
-	metaVoIP = new MetaVoIP(sipProto, sipPortText.toInt());
+	// Create MetaVoIP instance
+	metaVoIP = new MetaVoIP;
 	if (metaVoIP != Q_NULLPTR && metaVoIP->isLoaded())
 	{
 		// Connect Audio devices lists
@@ -33,6 +31,7 @@ BackEnd::BackEnd(QObject *parent) : QObject(parent), metaVoIP(nullptr), isRegist
 	emit audioInputChanged();
 	emit audioOutputChanged();
 
+	// Autoconnect on valid config
 	if (getSipUserStr() != "" && getSipPassStr() != "" && getSipServerStr() != "" && getSipPortStr() != "")
 		registerSip();
 }
@@ -50,10 +49,12 @@ void BackEnd::registerSip()
 		{
 			delete metaVoIP;	// Clean up the existing MetaVoIP instance
 			metaVoIP = nullptr; // Reset pointer
+			metaVoIP = new MetaVoIP;
 		}
 	}
-	// Backend QML current protocol; CUrrent procol text
-	// metaVoIP = new MetaVoIP(sipProto, sipPortText.toInt());
+
+	metaVoIP->initUA(sipProto, sipPortText.toInt());
+
 	sipUser = sipUser.simplified();
 	sipServer = sipServer.simplified();
 	sipPass = sipPass.simplified();
@@ -376,6 +377,10 @@ void BackEnd::on_saveButton_clicked()
 			settings.close();
 
 			registerSip();
+			// Update media devices to emit lists
+			metaVoIP->updateMediaDevices();
+			emit audioInputChanged();
+			emit audioOutputChanged();
 		}
 		else
 			handleError("No write permission available");
@@ -437,20 +442,22 @@ void BackEnd::setSipProtocol(const int &currentIndex)
 
 void BackEnd::setInputDevice(const QString &str)
 {
-	qDebug() << str;
 	if (m_currentInputDevice != str)
 	{
 		m_currentInputDevice = str;
+		if (metaVoIP != Q_NULLPTR && metaVoIP->isLoaded())
+			metaVoIP->setAudioSource(m_currentInputDevice);
 		emit audioInputChanged();
 	}
 }
 
 void BackEnd::setOutputDevice(const QString &str)
 {
-	qDebug() << str;
 	if (m_currentOutputDevice != str)
 	{
 		m_currentOutputDevice = str;
+		if (metaVoIP != Q_NULLPTR && metaVoIP->isLoaded())
+			metaVoIP->setAudioSink(m_currentOutputDevice);
 		emit audioOutputChanged();
 	}
 }

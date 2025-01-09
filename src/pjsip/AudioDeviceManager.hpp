@@ -15,13 +15,21 @@ public:
 
     Q_INVOKABLE QStringList getInputDevices() const;
     Q_INVOKABLE QStringList getOutputDevices() const;
+    Q_INVOKABLE uint32_t getCaptureDev() const;
+    Q_INVOKABLE void setCaptureDev(QString device);
+    Q_INVOKABLE uint32_t getPlaybackDev() const;
+    Q_INVOKABLE void setPlaybackDev(QString device);
+    Q_INVOKABLE uint32_t getInputVolume() const;
+    Q_INVOKABLE uint32_t getOutputVolume() const;
+    Q_INVOKABLE void setInputVolume(uint32_t volume, bool keep = true);
+    Q_INVOKABLE void setOutputVolume(uint32_t volume, bool keep = true);
+    Q_INVOKABLE void initializeDevices();
 
 private:
-    void initializeDevices();
+    AudDevManager &m_audDevManager;
 
     QStringList m_inputDevices;
     QStringList m_outputDevices;
-    AudDevManager &m_audDevManager;
 };
 
 #endif // AUDIOMANAGER_HPP

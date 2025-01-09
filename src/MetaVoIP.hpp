@@ -31,9 +31,10 @@ class MetaVoIP : public QObject
     Q_OBJECT
 
 public:
-    MetaVoIP(QString protocol, int port, QObject *parent = 0);
+    MetaVoIP(QObject *parent = nullptr);
     ~MetaVoIP();
 
+    void initUA(QString protocol, int port);
     void createAccount(QString idUri, QString registrarUri, QString user, QString password);
     void registerAccount();
     void unregisterAccount();
@@ -45,6 +46,8 @@ public:
     void ring(int callId);
     void sendDtmf(QString num);
     void updateMediaDevices(void);
+    void setAudioSource(QString device);
+    void setAudioSink(QString device);
 
     inline bool isLoaded()
     {
@@ -75,8 +78,7 @@ signals:
 private:
     EpConfig epCfg;
     Endpoint ep;
-    // AudDevManager audDevManager;
-    AudioDevInfoVector2 media_devices;
+    AudioDeviceManager *audioDeviceManager = new AudioDeviceManager(this);
     TransportConfig tCfg;
     AccountConfig aCfg;
     MyAccount *account;
