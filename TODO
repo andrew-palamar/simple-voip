@@ -1,5 +1,13 @@
-# simplle-voip TODO list
+# simple-voip TODO list
 
 - Add program and Qt about. MenuBar hidden
-- Connect / Disconnect button?
+- Remove Qt multimedia dependency. Play wav audio files using pjsip
+- Main screen with line state and connect / Disconnect button?
+- Incoming call window
 - Logging to tab or file
+- Lower memory usage
+```shell
+cat /proc/2770/status | grep -i "VmSize\|VmRSS"
+VmSize:	  172212 kB
+VmRSS:	   56644 kB
+```

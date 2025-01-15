@@ -4,12 +4,13 @@
 #include <QGuiApplication>
 #include <QObject>
 #include <QString>
+#include <QMutex>
+#include <QThread>
 #include <QDebug>
 #include "MetaVoIP.hpp"
 #include <QSoundEffect>
 
-class BackEnd : public QObject
-{
+class BackEnd : public QThread {
 	Q_OBJECT
 	Q_PROPERTY(QString statusStr READ getStr WRITE setStatusStr NOTIFY statusStrChanged)
 	Q_PROPERTY(QString numberStr READ getNumber WRITE setNumberStr NOTIFY numberStrChanged)
@@ -28,8 +29,9 @@ class BackEnd : public QObject
 	Q_PROPERTY(int audioInputIndex READ getAudioInputIndex WRITE setAudioInputIndex NOTIFY audioInputIndexChanged)
 	Q_PROPERTY(int audioOutputIndex READ getAudioOutputIndex WRITE setAudioOutputIndex NOTIFY audioOutputIndexChanged)
 
-public:
+    public:
 	explicit BackEnd(QObject *parent = nullptr);
+	void loop();
 	~BackEnd() override;
 
 	// Getters
@@ -43,7 +45,7 @@ public:
 	Q_INVOKABLE const QString getInputDeviceStr();
 	Q_INVOKABLE const QString getOutputDeviceStr();
 
-public slots:
+    public slots:
 
 	void exit();
 
@@ -83,7 +85,7 @@ public slots:
 	void on_hangButton_clicked();
 	void handleError(const QString &message);
 
-signals:
+    signals:
 	void wantToQuit();
 	void statusStrChanged();
 	void numberStrChanged();
@@ -103,7 +105,9 @@ signals:
 	void audioInputIndexChanged();
 	void audioOutputIndexChanged();
 
-private:
+    private:
+	QMutex m_mutex;
+	bool m_quit = false;
 	const QString SETTINGS_FILE_PATH = "settings.dat";
 	QSoundEffect ringtone, outgoingRing;
 	MetaVoIP *metaVoIP;
@@ -131,6 +135,12 @@ private:
 	QString m_currentInputDevice, m_currentOutputDevice = "";
 	// ComboBox indexes
 	int m_currentInputDeviceIndex, m_currentOutputDeviceIndex = -1;
+
+    protected:
+	void run() override
+	{
+		loop(); // Call the processing function to execute in the thread
+	}
 };
 
 #endif // BACKEND_H

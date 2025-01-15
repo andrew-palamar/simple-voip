@@ -13,14 +13,13 @@
 #include <QDebug>
 
 // BackEnd::BackEnd(QObject *parent) : QObject(parent)
-BackEnd::BackEnd(QObject *parent) : QObject(parent), metaVoIP(nullptr), isRegistering(false)
+BackEnd::BackEnd(QObject *parent) : QThread(parent), metaVoIP(nullptr), isRegistering(false)
 {
 	getSettings();
 
 	// Create MetaVoIP instance
 	metaVoIP = new MetaVoIP;
-	if (metaVoIP != Q_NULLPTR && metaVoIP->isLoaded())
-	{
+	if (metaVoIP != Q_NULLPTR && metaVoIP->isLoaded()) {
 		// Connect Audio devices lists
 		connect(metaVoIP, SIGNAL(inputListChanged(QStringList)), this, SLOT(on_InputListChanged(QStringList)));
 		connect(metaVoIP, SIGNAL(outputListChanged(QStringList)), this, SLOT(on_OutputListChanged(QStringList)));
@@ -36,18 +35,27 @@ BackEnd::BackEnd(QObject *parent) : QObject(parent), metaVoIP(nullptr), isRegist
 		registerSip();
 }
 
+void BackEnd::loop()
+{
+	while (!m_quit) {
+		QThread::msleep(1);
+	}
+}
+
 BackEnd::~BackEnd()
 {
+	m_mutex.lock();
+	m_quit = true;
+	m_mutex.unlock();
+	wait();
 }
 
 void BackEnd::registerSip()
 {
 	// Check if already registering
-	if (isRegistering)
-	{
-		if (metaVoIP)
-		{
-			delete metaVoIP;	// Clean up the existing MetaVoIP instance
+	if (isRegistering) {
+		if (metaVoIP) {
+			delete metaVoIP; // Clean up the existing MetaVoIP instance
 			metaVoIP = nullptr; // Reset pointer
 			metaVoIP = new MetaVoIP;
 		}
@@ -61,18 +69,15 @@ void BackEnd::registerSip()
 	sipState = "init";
 
 	connect(metaVoIP, SIGNAL(callStateChanged(int, int, int, int, QString)), this,
-			SLOT(on_CallStateChanged(int, int, int, int, QString)));
+		SLOT(on_CallStateChanged(int, int, int, int, QString)));
 	connect(metaVoIP, SIGNAL(regStateStarted(bool)), this, SLOT(on_RegStateStarted(bool)));
 	connect(metaVoIP, SIGNAL(regStateChanged(bool)), this, SLOT(on_RegStateChanged(bool)));
 
-	if (metaVoIP != Q_NULLPTR && metaVoIP->isLoaded())
-	{
+	if (metaVoIP != Q_NULLPTR && metaVoIP->isLoaded()) {
 		// Set the flag to indicate we are starting registration
 		isRegistering = true;
 		metaVoIP->createAccount("sip:" + sipUser + "@" + sipServer, "sip:" + sipServer, sipUser, sipPass);
-	}
-	else
-	{
+	} else {
 		handleError("Loading SIP library failed!");
 		isRegistering = false; // Reset the flag since registration failed
 	}
@@ -82,16 +87,13 @@ void BackEnd::on_CallStateChanged(int role, int callId, int state, int status, Q
 {
 	this->callId = callId;
 
-	if (state == PJSIP_INV_STATE_EARLY && status == 180)
-	{
-		if (role == 1)
-		{
+	if (state == PJSIP_INV_STATE_EARLY && status == 180) {
+		if (role == 1) {
 			int j = 0;
 			QList<int> namePos;
 			QList<int> numPos;
 
-			while ((j = remoteUri.indexOf("\"", j)) != -1)
-			{
+			while ((j = remoteUri.indexOf("\"", j)) != -1) {
 				namePos.append(j);
 				++j;
 			}
@@ -109,21 +111,15 @@ void BackEnd::on_CallStateChanged(int role, int callId, int state, int status, Q
 			setStatusStr(caller + " is calling...");
 			sipState = "localRing";
 			ringtone.play();
-		}
-		else
-		{
+		} else {
 			sipState = "remoteRing";
 			outgoingRing.play();
 		}
-	}
-	else if (state == PJSIP_INV_STATE_CONFIRMED && status == 200)
-	{
+	} else if (state == PJSIP_INV_STATE_CONFIRMED && status == 200) {
 		sipState = "calling";
 		ringtone.stop();
 		outgoingRing.stop();
-	}
-	else if (state == PJSIP_INV_STATE_DISCONNECTED)
-	{
+	} else if (state == PJSIP_INV_STATE_DISCONNECTED) {
 		setStatusStr("");
 		sipState = "";
 		ringtone.stop();
@@ -133,8 +129,7 @@ void BackEnd::on_CallStateChanged(int role, int callId, int state, int status, Q
 
 void BackEnd::setButtonPhone(const bool &enabled)
 {
-	if (enabled != m_buttonPhoneEnabled)
-	{
+	if (enabled != m_buttonPhoneEnabled) {
 		m_buttonPhoneEnabled = enabled;
 		emit buttonPhoneChanged();
 	}
@@ -147,8 +142,7 @@ bool BackEnd::getButtonPhone()
 
 void BackEnd::setButtonHangup(const bool &enabled)
 {
-	if (enabled != m_buttonHangupEnabled)
-	{
+	if (enabled != m_buttonHangupEnabled) {
 		m_buttonHangupEnabled = enabled;
 		emit buttonHangupChanged();
 	}
@@ -162,13 +156,10 @@ bool BackEnd::getButtonHangup()
 void BackEnd::on_RegStateStarted(bool status)
 {
 	setStatusStr("MetaVoIP: Regstate started: " + QVariant(status).toString());
-	if (status)
-	{
+	if (status) {
 		setButtonPhone(true);
 		setButtonHangup(true);
-	}
-	else
-	{
+	} else {
 		setButtonPhone(false);
 		setButtonHangup(false);
 	}
@@ -176,13 +167,10 @@ void BackEnd::on_RegStateStarted(bool status)
 
 void BackEnd::on_RegStateChanged(bool status)
 {
-	if (status)
-	{
+	if (status) {
 		setButtonPhone(true);
 		setButtonHangup(true);
-	}
-	else
-	{
+	} else {
 		setButtonPhone(false);
 		setButtonHangup(false);
 	}
@@ -190,8 +178,7 @@ void BackEnd::on_RegStateChanged(bool status)
 
 void BackEnd::on_InputListChanged(QStringList list)
 {
-	if (list != m_inputsList)
-	{
+	if (list != m_inputsList) {
 		m_inputsList = list;
 		int index = list.indexOf(getInputDeviceStr());
 		index == -1 ? setAudioInputIndex(-1) : setAudioInputIndex(index);
@@ -201,8 +188,7 @@ void BackEnd::on_InputListChanged(QStringList list)
 
 void BackEnd::on_OutputListChanged(QStringList list)
 {
-	if (list != m_outputsList)
-	{
+	if (list != m_outputsList) {
 		m_outputsList = list;
 		int index = list.indexOf(getOutputDeviceStr());
 		index == -1 ? setAudioOutputIndex(-1) : setAudioOutputIndex(index);
@@ -228,8 +214,7 @@ const QString BackEnd::getStr()
 // Set status line value
 void BackEnd::setStatusStr(const QString str)
 {
-	if (str != m_statusStr)
-	{
+	if (str != m_statusStr) {
 		m_statusStr = str;
 		emit statusStrChanged();
 	}
@@ -243,8 +228,7 @@ const QString BackEnd::getNumber()
 // Set status line value
 void BackEnd::setNumberStr(const QString str)
 {
-	if (str != m_numberStr)
-	{
+	if (str != m_numberStr) {
 		m_numberStr = str;
 		emit numberStrChanged();
 	}
@@ -258,8 +242,7 @@ const QString BackEnd::getSipServerStr()
 // Set status line value
 void BackEnd::setSipServerStr(const QString str)
 {
-	if (str != sipServer)
-	{
+	if (str != sipServer) {
 		sipServer = str;
 		emit sipServerStrChanged();
 	}
@@ -273,8 +256,7 @@ const QString BackEnd::getSipPassStr()
 // Set status line value
 void BackEnd::setSipPassStr(const QString str)
 {
-	if (str != sipPass)
-	{
+	if (str != sipPass) {
 		sipPass = str;
 		emit numberStrChanged();
 	}
@@ -288,8 +270,7 @@ const QString BackEnd::getSipUserStr()
 // Set status line value
 void BackEnd::setSipUserStr(const QString str)
 {
-	if (str != sipUser)
-	{
+	if (str != sipUser) {
 		sipUser = str;
 		emit numberStrChanged();
 	}
@@ -303,8 +284,7 @@ const QString BackEnd::getSipPortStr()
 // Set status line value
 void BackEnd::setSipPortStr(const QString str)
 {
-	if (str != sipPortText)
-	{
+	if (str != sipPortText) {
 		sipPortText = str;
 		emit numberStrChanged();
 	}
@@ -328,10 +308,8 @@ void BackEnd::exit()
 void BackEnd::getSettings()
 {
 	QFile settings(SETTINGS_FILE_PATH);
-	if (settings.exists())
-	{
-		if (settings.open(QIODevice::ReadOnly))
-		{
+	if (settings.exists()) {
+		if (settings.open(QIODevice::ReadOnly)) {
 			setSipServerStr(settings.readLine().simplified());
 			setSipUserStr(settings.readLine().simplified());
 			setSipPassStr(settings.readLine().simplified());
@@ -341,8 +319,7 @@ void BackEnd::getSettings()
 			setInputDevice(settings.readLine().simplified());
 			setOutputDevice(settings.readLine().simplified());
 			settings.close();
-		}
-		else
+		} else
 			handleError("No read permission available");
 	}
 
@@ -354,12 +331,10 @@ void BackEnd::getSettings()
 
 void BackEnd::on_saveButton_clicked()
 {
-	if (getSipUserStr() != "" && getSipPassStr() != "" && getSipServerStr() != "" && getSipPortStr() != "")
-	{
+	if (getSipUserStr() != "" && getSipPassStr() != "" && getSipServerStr() != "" && getSipPortStr() != "") {
 		QFile settings(SETTINGS_FILE_PATH);
 		settings.remove();
-		if (settings.open(QIODevice::WriteOnly))
-		{
+		if (settings.open(QIODevice::WriteOnly)) {
 			QTextStream out(&settings);
 			out << getSipServerStr().simplified();
 			out << "\n";
@@ -381,11 +356,9 @@ void BackEnd::on_saveButton_clicked()
 			metaVoIP->updateMediaDevices();
 			emit audioInputChanged();
 			emit audioOutputChanged();
-		}
-		else
+		} else
 			handleError("No write permission available");
-	}
-	else
+	} else
 		handleError("Please insert necessary values");
 }
 
@@ -396,8 +369,7 @@ int BackEnd::getAudioInputIndex()
 
 void BackEnd::setAudioInputIndex(const int &currentIndex)
 {
-	if (m_currentInputDeviceIndex != currentIndex)
-	{
+	if (m_currentInputDeviceIndex != currentIndex) {
 		m_currentInputDeviceIndex = currentIndex;
 		emit audioInputIndexChanged();
 	}
@@ -410,8 +382,7 @@ int BackEnd::getAudioOutputIndex()
 
 void BackEnd::setAudioOutputIndex(const int &currentIndex)
 {
-	if (m_currentOutputDeviceIndex != currentIndex)
-	{
+	if (m_currentOutputDeviceIndex != currentIndex) {
 		m_currentOutputDeviceIndex = currentIndex;
 		emit audioOutputIndexChanged();
 	}
@@ -424,8 +395,7 @@ int BackEnd::getProtocolIndex()
 
 void BackEnd::setProtocolIndex(const int &currentIndex)
 {
-	if (m_currentProtocolIndex != currentIndex)
-	{
+	if (m_currentProtocolIndex != currentIndex) {
 		m_currentProtocolIndex = currentIndex;
 		emit protocolIndexChanged();
 	}
@@ -433,8 +403,7 @@ void BackEnd::setProtocolIndex(const int &currentIndex)
 
 void BackEnd::setSipProtocol(const int &currentIndex)
 {
-	if (m_currentProtocolIndex != currentIndex)
-	{
+	if (m_currentProtocolIndex != currentIndex) {
 		m_currentProtocolIndex = currentIndex;
 		emit protocolIndexChanged();
 	}
@@ -442,8 +411,7 @@ void BackEnd::setSipProtocol(const int &currentIndex)
 
 void BackEnd::setInputDevice(const QString &str)
 {
-	if (m_currentInputDevice != str)
-	{
+	if (m_currentInputDevice != str) {
 		m_currentInputDevice = str;
 		if (metaVoIP != Q_NULLPTR && metaVoIP->isLoaded())
 			metaVoIP->setAudioSource(m_currentInputDevice);
@@ -453,8 +421,7 @@ void BackEnd::setInputDevice(const QString &str)
 
 void BackEnd::setOutputDevice(const QString &str)
 {
-	if (m_currentOutputDevice != str)
-	{
+	if (m_currentOutputDevice != str) {
 		m_currentOutputDevice = str;
 		if (metaVoIP != Q_NULLPTR && metaVoIP->isLoaded())
 			metaVoIP->setAudioSink(m_currentOutputDevice);
@@ -469,8 +436,7 @@ QString BackEnd::errorMessage()
 
 void BackEnd::handleError(const QString &message)
 {
-	if (m_errorMessage != message)
-	{
+	if (m_errorMessage != message) {
 		m_errorMessage = message;
 		emit errorMessageChanged();
 	}
